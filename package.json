@@ -1,0 +1,16 @@
+{
+  "name": "bless-you-twitter-blitter",
+  "version": "0.1.0",
+  "description": "Twitter Portmanteaux Joke Bot",
+  "main": "index.js",
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "keywords": ["twitter", "POS tagging", "Look Around You"],
+  "author": "Sam Ettinger",
+  "license": "MIT",
+  "dependencies": {
+    "twitter": "^1.7.1",
+    "wink-pos-tagger": "^2.2.2"
+  }
+}
