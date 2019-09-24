@@ -8,7 +8,7 @@ and, later:
 
 > Bless you, ants. Blants.
 
-Here's the source to my twitter bot that continues the tradition.
+Here's the source to [my twitter bot](https://twitter.com/thanksscientist) that continues the tradition.
 
 ## Getting started
 
