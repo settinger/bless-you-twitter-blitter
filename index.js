@@ -3,12 +3,14 @@
 // Create a word blend (portmanteau) of the plural noun phrase and "thanks" or "bless you"
 // Draft a tweet of the word blend so a human can manually observe and approve/reject it later
 
-require('dotenv').config();
-const twitter = require('twitter');
-const posTagger = require('wink-pos-tagger');
+require("dotenv").config();
+const twitter = require("twitter");
+const posTagger = require("wink-pos-tagger");
 
-const { blender, capitalize } = require('./blends');
-const tagger = posTagger();
+const Normal = require("./models/normal");
+const mongoose = require("mongoose");
+
+const { blender, capitalize } = require("./blends");
 
 const client = new twitter({
   consumer_key: process.env.TWITTER_CONSUMER_KEY,
@@ -17,36 +19,64 @@ const client = new twitter({
   access_token_secret: process.env.TWITTER_ACCESS_SECRET
 });
 
-let searchParams = {
-  q: "thanks",
-  count: 50,
-  result_type: 'recent',
-  lang: 'en'
-}
+const MONGODB_URI = "mongodb://127.0.0.1:27017";
+const DATABASE_NAME = "twitter-blitter";
 
-// const tweets = [];
+const tweetATweet = () => {
+  // Connect to MongoDB
+  mongoose
+    .connect(`${MONGODB_URI}/${DATABASE_NAME}`, { useNewUrlParser: true })
+    .then(msg => {
+      // Retrieve all tweetable words
+      Normal.find({ tweeted: { $lt: 2 } })
+        .then(array => {
+          // Pick a random word from the array
+          const index = Math.floor(Math.random() * array.length);
+          const word = array[index]["word"];
+          const tweeted = array[index]["tweeted"];
+          console.log(word, tweeted);
+          let prefix, blend;
+          // If word has been tweeted 0 times AND does not begin with "th": tweet "Thanks, X"
+          // Else if word has been tweeted 1 time AND does not begin with "bl": tweet "Bless you, X"
+          // Else: tweet "Write that down in your copybooks now."
+          let tweet = "Write that down in your copybooks now.";
+          if (tweeted === 0 && word.slice(0, 2) !== "th") {
+            prefix = "thanks";
+            blend = blender(prefix, word);
+            tweet = `${capitalize(prefix)}, ${word}. ${capitalize(blend)}.`;
+          } else if (tweeted === 1 && word.slice(0, 2) !== "bl") {
+            prefix = "bless you";
+            blend = blender(prefix, word);
+            tweet = `${capitalize(prefix)}, ${normal}. ${capitalize(blend)}.`;
+          }
+          // Tweet it
+          console.log(tweet);
+          // Increment the number of times the word's been tweeted
+          Normal.findOneAndUpdate({ word }, { tweeted: tweeted + 1 }).then(
+            tw => {
+              client
+                .post("statuses/update", { status: tweet })
+                .then(tweetEvent => {
+                  console.log(tweetEvent);
+                })
+                .catch(err => {
+                  throw err;
+                });
+            }
+          );
+        })
+        .catch(err => {
+          console.log("Error finding tweetable words");
+        });
+    })
+    .catch(err => {
+      console.log("Error connecting to DB");
+    });
+};
 
-client.get('search/tweets', searchParams, (err, data, res) => {
-  if (err) {console.log(`ERROR: ${err}`)};
-  // for (let tweet of data.statuses) {
-  //   tweets.push(tweet.text);
-  // }
-
-  let tweets = data.statuses.map(tweet => tweet.text);
-
-  for (let tweet of tweets) {
-    const taggedSentence = tagger.tagSentence(tweet);
-    let thanksIndex = taggedSentence.findIndex((word) => word.normal === 'thanks');
-    // Find NNS likely associated with "thanks"
-    // Just kidding let's not do that
-    let NNSs = taggedSentence.filter(word => word.pos === 'NNS' && word.normal !== 'thanks');
-    for (let NNS of NNSs) {
-      // Get normal form
-      let normal = NNS.normal;
-      // Choose whether we're making a "thanks" or "bless you" blend -- For now, do this at random; later, keep a log of what's been said in the past
-      let prefix = (Math.random() > 0.5) ? "thanks" : "bless you"
-      let blend = blender(prefix, normal);
-      console.log(`${capitalize(prefix)}, ${normal}. ${capitalize(blend)}.`); // For now, log things instead of tweeting them
-    }
-  }
-})
+setTimeout(() => {
+  setInterval(() => {
+    // console.log("a");
+    tweetATweet();
+  }, 1000);
+}, 60000);
