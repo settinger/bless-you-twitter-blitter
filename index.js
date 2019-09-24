@@ -57,7 +57,7 @@ const tweetATweet = () => {
               client
                 .post("statuses/update", { status: tweet })
                 .then(tweetEvent => {
-                  console.log(tweetEvent);
+                  console.log(tweetEvent.text);
                 })
                 .catch(err => {
                   throw err;
@@ -78,5 +78,5 @@ setTimeout(() => {
   setInterval(() => {
     // console.log("a");
     tweetATweet();
-  }, 1000);
-}, 60000);
+  }, 60000);
+}, 1000);
