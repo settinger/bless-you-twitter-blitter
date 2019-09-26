@@ -47,7 +47,7 @@ const tweetATweet = () => {
           } else if (tweeted === 1 && word.slice(0, 2) !== "bl") {
             prefix = "bless you";
             blend = blender(prefix, word);
-            tweet = `${capitalize(prefix)}, ${normal}. ${capitalize(blend)}.`;
+            tweet = `${capitalize(prefix)}, ${word}. ${capitalize(blend)}.`;
           }
           // Tweet it
           console.log(tweet);
@@ -74,9 +74,10 @@ const tweetATweet = () => {
     });
 };
 
+tweetATweet();
+
 setTimeout(() => {
   setInterval(() => {
-    // console.log("a");
     tweetATweet();
-  }, 60000);
+  }, 1000 * 60 * 60);
 }, 1000);
