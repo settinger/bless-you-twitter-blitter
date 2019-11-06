@@ -16,7 +16,7 @@
   "dependencies": {
     "dotenv": "^8.1.0",
     "iscool": "^2.0.0",
-    "mongoose": "^5.7.1",
+    "mongoose": "^5.7.5",
     "twitter": "^1.7.1",
     "wink-pos-tagger": "^2.2.2"
   }
